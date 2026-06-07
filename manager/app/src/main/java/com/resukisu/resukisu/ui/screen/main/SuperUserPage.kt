@@ -1,17 +1,8 @@
 package com.resukisu.resukisu.ui.screen.main
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -42,10 +33,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Article
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RestoreFromTrash
@@ -54,7 +42,6 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.twotone.Archive
 import androidx.compose.material.icons.twotone.SearchOff
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
@@ -103,10 +90,8 @@ import coil.request.ImageRequest
 import com.resukisu.resukisu.Natives
 import com.resukisu.resukisu.R
 import com.resukisu.resukisu.ksuApp
-import com.resukisu.resukisu.ui.component.FabMenuPresets
 import com.resukisu.resukisu.ui.component.SearchAppBar
 import com.resukisu.resukisu.ui.component.SwipeableSnackbarHost
-import com.resukisu.resukisu.ui.component.VerticalExpandableFab
 import com.resukisu.resukisu.ui.component.settings.SettingsBaseWidget
 import com.resukisu.resukisu.ui.component.settings.lazySegmentColumn
 import com.resukisu.resukisu.ui.navigation.LocalNavigator
@@ -154,12 +139,6 @@ fun SuperUserPage(bottomPadding: Dp) {
 
     LaunchedEffect(Unit) {
         viewModel.search = ""
-    }
-
-    LaunchedEffect(viewModel.selectedApps, viewModel.showBatchActions) {
-        if (viewModel.showBatchActions && viewModel.selectedApps.isEmpty()) {
-            viewModel.showBatchActions = false
-        }
     }
 
     val filteredAndSortedAppGroups = remember(
@@ -255,9 +234,6 @@ fun SuperUserPage(bottomPadding: Dp) {
             SwipeableSnackbarHost(hostState = snackBarHostState)
         },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-        floatingActionButton = {
-            SuperUserFab(viewModel, filteredAndSortedAppGroups, listState, scope, bottomPadding)
-        }
     ) { innerPadding ->
         SuperUserContent(
             innerPadding = innerPadding,
@@ -280,57 +256,6 @@ fun SuperUserPage(bottomPadding: Dp) {
             )
         }
     }
-}
-
-@Composable
-private fun SuperUserFab(
-    viewModel: SuperUserViewModel,
-    filteredAndSortedAppGroups: List<SuperUserViewModel.AppGroup>,
-    listState: androidx.compose.foundation.lazy.LazyListState,
-    scope: CoroutineScope,
-    bottomPadding: Dp
-) {
-    VerticalExpandableFab(
-        modifier = Modifier.padding(bottom = bottomPadding + 5.dp),
-        menuItems = if (viewModel.showBatchActions && viewModel.selectedApps.isNotEmpty()) {
-            FabMenuPresets.getBatchActionMenuItems(
-                onCancel = {
-                    viewModel.selectedApps = emptySet()
-                    viewModel.showBatchActions = false
-                },
-                onDeny = { scope.launch { viewModel.updateBatchPermissions(false) } },
-                onAllow = { scope.launch { viewModel.updateBatchPermissions(true) } },
-                onUnmountModules = {
-                    scope.launch { viewModel.updateBatchPermissions(
-                        allowSu = false,
-                        umountModules = true
-                    ) }
-                },
-                onDisableUnmount = {
-                    scope.launch { viewModel.updateBatchPermissions(
-                        allowSu = false,
-                        umountModules = false
-                    ) }
-                }
-            )
-        } else {
-            FabMenuPresets.getScrollMenuItems(
-                onScrollToTop = { scope.launch { listState.animateScrollToItem(0) } },
-                onScrollToBottom = {
-                    scope.launch {
-                        val lastIndex = filteredAndSortedAppGroups.size - 1
-                        if (lastIndex >= 0) listState.animateScrollToItem(lastIndex)
-                    }
-                }
-            )
-        },
-        mainButtonIcon = if (viewModel.showBatchActions && viewModel.selectedApps.isNotEmpty()) {
-            Icons.Filled.GridView
-        } else {
-            Icons.Filled.Add
-        },
-        mainButtonExpandedIcon = Icons.Filled.Close
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -432,30 +357,8 @@ private fun SuperUserContent(
             ) { _, appGroup ->
                 AppGroupItem(
                     appGroup = appGroup,
-                    isSelected = appGroup.packageNames.any {
-                        viewModel.selectedApps.contains(
-                            it
-                        )
-                    },
-                    onToggleSelection = {
-                        appGroup.packageNames.forEach {
-                            viewModel.toggleAppSelection(
-                                it
-                            )
-                        }
-                    },
                     onClick = {
-                        if (viewModel.showBatchActions) {
-                            appGroup.packageNames.forEach { viewModel.toggleAppSelection(it) }
-                        } else {
-                            navigator.push(Route.AppProfile(appGroup))
-                        }
-                    },
-                    onLongClick = {
-                        if (!viewModel.showBatchActions) {
-                            viewModel.toggleBatchMode()
-                            appGroup.packageNames.forEach { viewModel.toggleAppSelection(it) }
-                        }
+                        navigator.push(Route.AppProfile(appGroup))
                     },
                     viewModel = viewModel
                 )
@@ -753,10 +656,7 @@ private fun BottomSheetMenuItemView(menuItem: BottomSheetMenuItem) {
 @Composable
 private fun AppGroupItem(
     appGroup: SuperUserViewModel.AppGroup,
-    isSelected: Boolean,
-    onToggleSelection: () -> Unit,
     onClick: () -> Unit,
-    onLongClick: () -> Unit,
     viewModel: SuperUserViewModel,
 ) {
     val mainApp = appGroup.mainApp
@@ -764,9 +664,6 @@ private fun AppGroupItem(
     SettingsBaseWidget(
         onClick = {
             onClick()
-        },
-        onLongClick = {
-            onLongClick()
         },
         title = mainApp.label,
         description = if (appGroup.apps.size > 1) {
@@ -827,51 +724,11 @@ private fun AppGroupItem(
         },
         iconPlaceholder = false,
     ) {
-        AnimatedContent(
-            targetState = viewModel.showBatchActions,
-            transitionSpec = {
-                fadeIn(tween(200)) togetherWith
-                        fadeOut(tween(200))
-            },
-            label = "BatchActionTransition"
-        ) { showBatchActions ->
-            if (showBatchActions) {
-                val checkboxInteractionSource = remember { MutableInteractionSource() }
-                val isCheckboxPressed by checkboxInteractionSource.collectIsPressedAsState()
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    AnimatedVisibility(
-                        visible = isCheckboxPressed,
-                        enter = expandHorizontally() + fadeIn(),
-                        exit = shrinkHorizontally() + fadeOut()
-                    ) {
-                        Text(
-                            text = if (isSelected) stringResource(R.string.selected) else stringResource(R.string.select),
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(end = 4.dp)
-                        )
-                    }
-                    Checkbox(
-                        checked = isSelected,
-                        onCheckedChange = { onToggleSelection() },
-                        interactionSource = checkboxInteractionSource,
-                    )
-                }
-
-                BackHandler {
-                    viewModel.showBatchActions = false
-                }
-            } else {
-                Icon(
-                    imageVector = Icons.Filled.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
+        Icon(
+            imageVector = Icons.Filled.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
+        )
     }
 }

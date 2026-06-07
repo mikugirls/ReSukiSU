@@ -149,10 +149,6 @@ class SuperUserViewModel : ViewModel() {
         private set
     var isRefreshing by mutableStateOf(false)
         private set
-    var showBatchActions by mutableStateOf(false)
-        internal set
-    var selectedApps by mutableStateOf<Set<String>>(emptySet())
-        internal set
     var loadingProgress by mutableFloatStateOf(0f)
         private set
 
@@ -188,43 +184,6 @@ class SuperUserViewModel : ViewModel() {
     fun updateCurrentSortType(newSortType: SortType) {
         currentSortType = newSortType
         prefs.edit { putString(KEY_CURRENT_SORT_TYPE, newSortType.persistKey) }
-    }
-
-    fun toggleBatchMode() {
-        showBatchActions = !showBatchActions
-        if (!showBatchActions) clearSelection()
-    }
-
-    fun toggleAppSelection(packageName: String) {
-        selectedApps = if (selectedApps.contains(packageName)) {
-            selectedApps - packageName
-        } else {
-            selectedApps + packageName
-        }
-    }
-
-    fun clearSelection() {
-        selectedApps = emptySet()
-    }
-
-    suspend fun updateBatchPermissions(allowSu: Boolean, umountModules: Boolean? = null) {
-        selectedApps.forEach { packageName ->
-            apps.find { it.packageName == packageName }?.let { app ->
-                val profile = Natives.getAppProfile(packageName, app.uid)
-                val updatedProfile = profile.copy(
-                    allowSu = allowSu,
-                    umountModules = umountModules ?: profile.umountModules,
-                    nonRootUseDefault = false
-                )
-                if (Natives.setAppProfile(updatedProfile)) {
-                    updateAppProfileLocally(packageName, updatedProfile)
-                    notifyConfigChange(packageName)
-                }
-            }
-        }
-        clearSelection()
-        showBatchActions = false
-        refreshAppConfigurations()
     }
 
     fun updateAppProfileLocally(packageName: String, updatedProfile: Natives.Profile) {
