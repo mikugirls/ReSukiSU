@@ -27,6 +27,7 @@ import com.resukisu.resukisu.ui.util.module.LatestVersionInfo
 import com.resukisu.resukisu.ui.util.rootAvailable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -211,7 +212,20 @@ class HomeViewModel : ViewModel() {
             if (_uiState.value.isInitialDataLoaded) return completedJob()
         }
 
-        val job = viewModelScope.launch {
+        if (context.appPreferences.getBoolean("check_update", true)) {
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    val versionInfo = checkNewVersion()
+                    _uiState.update {
+                        it.copy(latestVersionInfo = versionInfo)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+        val job = viewModelScope.launch(Dispatchers.IO) {
             if (refreshUI) {
                 _uiState.update {
                     it.copy(isRefreshing = true)
@@ -222,21 +236,15 @@ class HomeViewModel : ViewModel() {
                 loadingJobs.forEach { it.cancel() }
                 loadingJobs.clear()
 
-                withContext(Dispatchers.IO) {
+                val userSettings = async {
                     applyUserSettings(context)
                 }
                 val coreJob = loadCoreData(force = refreshUI)
                 val extendedJob = loadExtendedData(context, force = refreshUI)
+
                 coreJob?.join()
                 extendedJob?.join()
-
-                if (context.appPreferences.getBoolean("check_update", true)) {
-                    runCatching {
-                        withContext(Dispatchers.IO) { checkNewVersion() }
-                    }.onSuccess { newVersionInfo ->
-                        _uiState.update { it.copy(latestVersionInfo = newVersionInfo) }
-                    }
-                }
+                userSettings.join()
             } finally {
                 _uiState.update {
                     it.copy(
@@ -246,6 +254,7 @@ class HomeViewModel : ViewModel() {
                 }
             }
         }
+
         dataLoadJob = job
         return job
     }
