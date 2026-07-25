@@ -16,6 +16,8 @@ import com.resukisu.resukisu.data.update.ManagerUpdateInfo
 import com.resukisu.resukisu.data.update.ManagerUpdateRepository
 import com.resukisu.resukisu.getKernelVersion
 import com.resukisu.resukisu.ksuApp
+import com.resukisu.resukisu.ui.util.getKpmModuleCount
+import com.resukisu.resukisu.ui.util.getKpmVersion
 import com.resukisu.resukisu.ui.util.getMetaModuleImplement
 import com.resukisu.resukisu.ui.util.getModuleCount
 import com.resukisu.resukisu.ui.util.getSELinuxStatus
@@ -49,6 +51,7 @@ data class HomeUiState(
     val isHideZygiskImplement: Boolean = false,
     val isHideMetaModuleImplement: Boolean = false,
     val isHideLinkCard: Boolean = false,
+    val hidekpminfo: Boolean = false,
     val isInitialDataLoaded: Boolean = false,
     val isCoreDataLoaded: Boolean = false,
     val isExtendedDataLoaded: Boolean = false,
@@ -75,6 +78,7 @@ class HomeViewModel : ViewModel() {
         val lkmMode: Boolean? = null,
         val kernelVersion: KernelVersion = getKernelVersion(),
         val isRootAvailable: Boolean = false,
+        val isKpmConfigured: Boolean = false,
         val requireNewKernel: Boolean = false,
         val uapiMismatch: Boolean = false,
         val isSELinuxPermissive: Boolean = false,
@@ -88,12 +92,14 @@ class HomeViewModel : ViewModel() {
         val deviceModel: String = "",
         val managerVersion: Triple<String, Int, Int> = Triple("", 0, 0),
         val selinuxStatus: String = "",
+        val kpmVersion: String = "",
         val susfsEnabled: Boolean = false,
         val susfsVersionSupported: Boolean = false,
         val susfsVersion: String = "",
         val susfsFeatures: String = "",
         val superuserCount: Int = 0,
         val moduleCount: Int = 0,
+        val kpmModuleCount: Int = 0,
         val managersList: Natives.ManagersList? = null,
         val isDynamicSignEnabled: Boolean = false,
         val zygiskImplement: String = "",
@@ -198,6 +204,7 @@ class HomeViewModel : ViewModel() {
                     lkmMode = lkmMode,
                     kernelVersion = kernelVersion,
                     isRootAvailable = runCatching { rootAvailable() }.getOrDefault(false),
+                    isKpmConfigured = runCatching { Natives.isKPMEnabled() }.getOrDefault(false),
                     requireNewKernel = runCatching {
                         isManager && Natives.requireNewKernel()
                     }.getOrDefault(false),
@@ -342,6 +349,17 @@ class HomeViewModel : ViewModel() {
             it.copy(isHideOtherInfo = newValue)
         }
     }
+
+    fun handleHideKpminfoChange(newValue: Boolean) {
+        handleHideKpminfoChange(ksuApp, newValue)
+    }
+
+    fun handleHideKpminfoChange(context: Context, newValue: Boolean) {
+        updateBooleanPref(context, "hide_kpm_info", newValue) {
+            it.copy(hidekpminfo = newValue)
+        }
+    }
+
     fun refreshData(
         context: Context,
         refreshUI: Boolean = false
@@ -400,6 +418,7 @@ class HomeViewModel : ViewModel() {
                     "is_hide_meta_module_Implement",
                     false
                 ),
+                hidekpminfo = settingsPrefs.getBoolean("hide_kpm_info", false),
             )
         }
     }
@@ -434,10 +453,24 @@ class HomeViewModel : ViewModel() {
         }
     }
 
+    private suspend fun loadKpmModuleCount(): Int {
+        return withContext(Dispatchers.IO) {
+            runCatching { getKpmModuleCount() }.getOrDefault(0)
+        }
+    }
+
+    private suspend fun loadKpmVersion(): String {
+        return withContext(Dispatchers.IO) {
+            runCatching { getKpmVersion() }.getOrDefault("")
+        }
+    }
+
     private suspend fun updateModuleAndSuperuserInfo() {
         statusInfoMutex.withLock {
             val superuserCount = loadSuperuserCount()
             val moduleInfo = loadModuleInfo()
+            val kpmModuleCount = loadKpmModuleCount()
+            val kpmVersion = loadKpmVersion()
             _uiState.update {
                 it.copy(
                     systemInfo = it.systemInfo.copy(
@@ -445,6 +478,8 @@ class HomeViewModel : ViewModel() {
                         moduleCount = moduleInfo.first,
                         zygiskImplement = moduleInfo.second,
                         metaModuleImplement = moduleInfo.third,
+                        kpmModuleCount = kpmModuleCount,
+                        kpmVersion = kpmVersion,
                     )
                 )
             }
@@ -455,12 +490,16 @@ class HomeViewModel : ViewModel() {
         return viewModelScope.launch(Dispatchers.IO) {
             statusInfoMutex.withLock {
                 val moduleInfo = loadModuleInfo()
+                val kpmModuleCount = loadKpmModuleCount()
+                val kpmVersion = loadKpmVersion()
                 _uiState.update {
                     it.copy(
                         systemInfo = it.systemInfo.copy(
                             moduleCount = moduleInfo.first,
                             zygiskImplement = moduleInfo.second,
                             metaModuleImplement = moduleInfo.third,
+                            kpmModuleCount = kpmModuleCount,
+                            kpmVersion = kpmVersion,
                         )
                     )
                 }
@@ -476,6 +515,23 @@ class HomeViewModel : ViewModel() {
                     it.copy(
                         systemInfo = it.systemInfo.copy(
                             superuserCount = superuserCount,
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun refreshKpmModuleInfo(): Job {
+        return viewModelScope.launch(Dispatchers.IO) {
+            statusInfoMutex.withLock {
+                val kpmModuleCount = loadKpmModuleCount()
+                val kpmVersion = loadKpmVersion()
+                _uiState.update {
+                    it.copy(
+                        systemInfo = it.systemInfo.copy(
+                            kpmModuleCount = kpmModuleCount,
+                            kpmVersion = kpmVersion,
                         )
                     )
                 }

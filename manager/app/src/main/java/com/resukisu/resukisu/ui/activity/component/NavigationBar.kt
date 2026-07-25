@@ -48,12 +48,14 @@ fun NavigationBar(
     destinations: List<BottomBarDestination>,
     isBottomBar: Boolean
 ) {
-    // 是否隐藏 badge
+    // 从 ViewModel 获取所有计数数据
     val homeViewModel = viewModel<HomeViewModel>(viewModelStoreOwner = ksuApp)
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
     val isHideOtherInfo = uiState.isHideOtherInfo
+    val hidekpminfo = uiState.hidekpminfo
     val superuserCount = uiState.systemInfo.superuserCount
     val moduleCount = uiState.systemInfo.moduleCount
+    val kpmModuleCount = uiState.systemInfo.kpmModuleCount
 
     // 翻页处理
     val page = LocalSelectedPage.current
@@ -77,12 +79,12 @@ fun NavigationBar(
                 BottomBarNavigationItem(
                     isSelected = index == page,
                     destination = destination,
-                    onClick = {
-                        handlePageChange(index)
-                    },
+                    onClick = { handlePageChange(index) },
+                    kpmModuleCount = kpmModuleCount,
                     superuserCount = superuserCount,
                     moduleCount = moduleCount,
                     isHideOtherInfo = isHideOtherInfo,
+                    hidekpminfo = hidekpminfo,
                 )
             }
         }
@@ -109,12 +111,12 @@ fun NavigationBar(
                 NavigationRailItem(
                     isSelected = index == page,
                     destination = destination,
-                    onClick = {
-                        handlePageChange(index)
-                    },
+                    onClick = { handlePageChange(index) },
+                    kpmModuleCount = kpmModuleCount,
                     superuserCount = superuserCount,
                     moduleCount = moduleCount,
                     isHideOtherInfo = isHideOtherInfo,
+                    hidekpminfo = hidekpminfo,
                 )
             }
         }
@@ -126,9 +128,11 @@ private fun NavigationRailItem(
     isSelected: Boolean,
     destination: BottomBarDestination,
     onClick: () -> Unit,
+    kpmModuleCount: Int,
     superuserCount: Int,
     moduleCount: Int,
-    isHideOtherInfo: Boolean
+    isHideOtherInfo: Boolean,
+    hidekpminfo: Boolean,
 ) {
     WideNavigationRailItem(
         railExpanded = false,
@@ -141,7 +145,9 @@ private fun NavigationRailItem(
                         dest = destination,
                         superUser = superuserCount,
                         module = moduleCount,
+                        kpm = kpmModuleCount,
                         isHideOtherInfo = isHideOtherInfo,
+                        hidekpminfo = hidekpminfo,
                     )
                 }
             ) {
@@ -169,9 +175,11 @@ private fun RowScope.BottomBarNavigationItem(
     isSelected: Boolean,
     destination: BottomBarDestination,
     onClick: () -> Unit,
+    kpmModuleCount: Int,
     superuserCount: Int,
     moduleCount: Int,
-    isHideOtherInfo: Boolean
+    isHideOtherInfo: Boolean,
+    hidekpminfo: Boolean,
 ) {
     NavigationBarItem(
         selected = isSelected,
@@ -183,7 +191,9 @@ private fun RowScope.BottomBarNavigationItem(
                         dest = destination,
                         superUser = superuserCount,
                         module = moduleCount,
+                        kpm = kpmModuleCount,
                         isHideOtherInfo = isHideOtherInfo,
+                        hidekpminfo = hidekpminfo,
                     )
                 }
             ) {
@@ -212,16 +222,24 @@ private fun DestinationBadge(
     dest: BottomBarDestination,
     superUser: Int,
     module: Int,
-    isHideOtherInfo: Boolean
+    kpm: Int,
+    isHideOtherInfo: Boolean,
+    hidekpminfo: Boolean,
 ) {
     val count = when (dest) {
+        BottomBarDestination.Kpm -> kpm
         BottomBarDestination.SuperUser -> superUser
         BottomBarDestination.Module -> module
         else -> 0
     }
 
+    val shouldShow = when (dest) {
+        BottomBarDestination.Kpm -> count > 0 && !isHideOtherInfo && !hidekpminfo
+        else -> count > 0 && !isHideOtherInfo
+    }
+
     AnimatedVisibility(
-        visible = count > 0 && !isHideOtherInfo,
+        visible = shouldShow,
         enter = fadeIn(),
         exit = fadeOut()
     ) {
