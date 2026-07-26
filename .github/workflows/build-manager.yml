@@ -192,11 +192,15 @@ jobs:
 
       - name: Build APK
         run: |
+          GRADLE_ARGS="-Pcommit=${{ steps.commit.outputs.COMMIT_SHA }}"
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            ./gradlew assemble${{ matrix.build_type }} -Pcommit=${{ steps.commit.outputs.COMMIT_SHA }} -PIS_PR_BUILD=true
-          else
-            ./gradlew assemble${{ matrix.build_type }} -Pcommit=${{ steps.commit.outputs.COMMIT_SHA }}
+            GRADLE_ARGS="$GRADLE_ARGS -PIS_PR_BUILD=true"
           fi
+          if [ "${{ matrix.manager_type }}" == "spoofed" ]; then
+            GRADLE_ARGS="$GRADLE_ARGS -Pspoofed=true"
+          fi
+          ./gradlew assemble${{ matrix.build_type }} $GRADLE_ARGS
+
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7

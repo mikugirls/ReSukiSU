@@ -122,7 +122,12 @@ android {
         minSdk = androidMinSdkVersion
         targetSdk = androidTargetSdkVersion
         versionCode = managerVersionCode
-        versionName = managerVersionName
+        // 根据 spoofed 属性动态设置
+        versionName = if (project.hasProperty("spoofed") && project.property("spoofed") == "true") {
+            "$managerVersionName-spoofed"
+        } else {
+            managerVersionName
+        }
 
         val isPrBuild = project.findProperty("IS_PR_BUILD")?.toString()?.toBoolean() ?: false
         buildConfigField("boolean", "IS_PR_BUILD", isPrBuild.toString())
@@ -166,10 +171,10 @@ baselineProfile {
     automaticGenerationDuringBuild = false
 }
 
+// 根据是否为 spoofed 变体，决定 APK 文件名后缀
+val archiveSuffix = if (project.hasProperty("spoofed") && project.property("spoofed") == "true") "-spoofed" else ""
 base {
-    archivesName.set(
-        "ReSukiSU_${managerVersionName}_${managerVersionCode}"
-    )
+    archivesName.set("ReSukiSU_${managerVersionName}${archiveSuffix}_${managerVersionCode}")
 }
 
 configurations.all {

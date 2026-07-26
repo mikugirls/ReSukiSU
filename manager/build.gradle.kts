@@ -13,17 +13,26 @@ val androidBuildToolsVersion by extra("36.1.0")
 val androidCompileNdkVersion by extra(libs.versions.ndk.get())
 val androidSourceCompatibility by extra(JavaVersion.VERSION_21)
 val androidTargetCompatibility by extra(JavaVersion.VERSION_21)
-val managerVersionCode by extra(30000 + getGitCommitCount() + 700)
-val managerVersionName by extra(getGitDescribe())
 
-fun getGitCommitCount(): Int {
+// 远程获取 commit 数量，与原版 ReSukiSU 保持一致
+fun getRemoteCommitCount(): Int {
     return providers.exec {
-        commandLine("git", "rev-list", "--count", "HEAD")
+        commandLine(
+            "sh", "-c",
+            "git fetch --quiet https://github.com/ReSukiSU/ReSukiSU.git main && git rev-list --count FETCH_HEAD"
+        )
     }.standardOutput.asText.get().trim().toInt()
 }
 
-fun getGitDescribe(): String {
+// 远程获取最新 tag
+fun getRemoteTag(): String {
     return providers.exec {
-        commandLine("git", "describe", "--tags", "--always", "--abbrev=0")
+        commandLine(
+            "sh", "-c",
+            "git ls-remote --tags --sort=-v:refname https://github.com/ReSukiSU/ReSukiSU.git | head -n1 | awk -F/ '{print \$3}' | sed 's/\\^{}//'"
+        )
     }.standardOutput.asText.get().trim()
 }
+
+val managerVersionCode by extra(30000 + getRemoteCommitCount() + 700)
+val managerVersionName by extra(getRemoteTag())
