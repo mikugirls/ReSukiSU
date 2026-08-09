@@ -11,11 +11,12 @@ import com.resukisu.resukisu.BuildConfig
 import com.resukisu.resukisu.KernelVersion
 import com.resukisu.resukisu.Natives
 import com.resukisu.resukisu.data.appPreferences
-import com.resukisu.resukisu.data.susfs.SuSFSConfigHelper
 import com.resukisu.resukisu.data.update.ManagerUpdateInfo
 import com.resukisu.resukisu.data.update.ManagerUpdateRepository
 import com.resukisu.resukisu.getKernelVersion
 import com.resukisu.resukisu.ksuApp
+import com.resukisu.resukisu.data.susfs.SuSFSConfigHelper
+import com.resukisu.resukisu.ui.activity.util.isNetworkAvailable
 import com.resukisu.resukisu.ui.util.getKpmModuleCount
 import com.resukisu.resukisu.ui.util.getKpmVersion
 import com.resukisu.resukisu.ui.util.getMetaModuleImplement
@@ -51,7 +52,7 @@ data class HomeUiState(
     val isHideZygiskImplement: Boolean = false,
     val isHideMetaModuleImplement: Boolean = false,
     val isHideLinkCard: Boolean = false,
-    val hidekpminfo: Boolean = false,
+    val hideKpmInfo: Boolean = false,
     val isInitialDataLoaded: Boolean = false,
     val isCoreDataLoaded: Boolean = false,
     val isExtendedDataLoaded: Boolean = false,
@@ -128,6 +129,14 @@ class HomeViewModel : ViewModel() {
                     betaManagerUpdate = null,
                     isBetaManagerUpdateCheckFailed = false,
                 )
+            }
+            return
+        }
+        if (!isNetworkAvailable(context)) {
+            managerUpdateCheckJob?.cancel()
+            managerUpdateCheckJob = null
+            _uiState.update {
+                it.copy(isBetaManagerUpdateCheckFailed = false)
             }
             return
         }
@@ -350,13 +359,13 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    fun handleHideKpminfoChange(newValue: Boolean) {
-        handleHideKpminfoChange(ksuApp, newValue)
+    fun handlehideKpmInfoChange(newValue: Boolean) {
+        handlehideKpmInfoChange(ksuApp, newValue)
     }
 
-    fun handleHideKpminfoChange(context: Context, newValue: Boolean) {
+    fun handlehideKpmInfoChange(context: Context, newValue: Boolean) {
         updateBooleanPref(context, "hide_kpm_info", newValue) {
-            it.copy(hidekpminfo = newValue)
+            it.copy(hideKpmInfo = newValue)
         }
     }
 
@@ -418,7 +427,7 @@ class HomeViewModel : ViewModel() {
                     "is_hide_meta_module_Implement",
                     false
                 ),
-                hidekpminfo = settingsPrefs.getBoolean("hide_kpm_info", false),
+                hideKpmInfo = settingsPrefs.getBoolean("hide_kpm_info", false),
             )
         }
     }

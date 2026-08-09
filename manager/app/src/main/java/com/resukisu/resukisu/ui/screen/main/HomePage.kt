@@ -350,7 +350,7 @@ fun HomePage(
                         isHideSusfsStatus = uiState.isHideSusfsStatus,
                         isHideZygiskImplement = uiState.isHideZygiskImplement,
                         isHideMetaModuleImplement = uiState.isHideMetaModuleImplement,
-                        hidekpminfo = uiState.hidekpminfo,
+                        hideKpmInfo = uiState.hideKpmInfo,
                     )
                 }
 
@@ -700,7 +700,7 @@ private fun InfoCard(
     isHideSusfsStatus: Boolean,
     isHideZygiskImplement: Boolean,
     isHideMetaModuleImplement: Boolean,
-    hidekpminfo: Boolean
+    hideKpmInfo: Boolean
 ) {
     val managersList = systemInfo.managersList
 
@@ -837,7 +837,7 @@ private fun InfoCard(
         }
 
         item(
-            visible = systemStatus.lkmMode == false && !isSimpleMode && !hidekpminfo
+            visible = systemStatus.lkmMode == false && !isSimpleMode && !hideKpmInfo
         ) {
             val kpmNotSupport =
                 systemInfo.kpmVersion.isEmpty() || systemInfo.kpmVersion.startsWith("Error")

@@ -15,7 +15,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -138,8 +137,6 @@ fun ThemeSettingsScreen() {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val systemIsDark = isSystemInDarkTheme()
-
     // 创建设置状态管理器
     val settingsViewModel = viewModel<SettingsViewModel>(viewModelStoreOwner = ksuApp)
     val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
@@ -272,11 +269,6 @@ fun ThemeSettingsScreen() {
             }
         }
     )
-
-    // 初始化设置
-    LaunchedEffect(Unit) {
-        settingsViewModel.initialize(context, systemIsDark)
-    }
 
     // 各种设置对话框
     ThemeSettingsDialogs(
@@ -595,7 +587,7 @@ private fun AppearanceSettings(
         }
 
         expandableItem(
-            expanded = ThemeConfig.customBackgroundUri != null,
+            expanded = state.isCustomBackgroundEnabled,
             topContent = {
                 CustomBackgroundSettings(
                     state = state,
@@ -681,8 +673,8 @@ private fun SegmentedColumnScope.hideOptionsSettings(
             icon = Icons.TwoTone.VisibilityOff,
             title = stringResource(R.string.hide_kpm_info),
             description = stringResource(R.string.hide_kpm_info_summary),
-            checked = homeUiState.hidekpminfo,
-            onCheckedChange = homeViewModel::handleHideKpminfoChange
+            checked = homeUiState.hideKpmInfo,
+            onCheckedChange = homeViewModel::handlehideKpmInfoChange
         )
     }
 

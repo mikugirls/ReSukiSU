@@ -52,7 +52,7 @@ fun NavigationBar(
     val homeViewModel = viewModel<HomeViewModel>(viewModelStoreOwner = ksuApp)
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
     val isHideOtherInfo = uiState.isHideOtherInfo
-    val hidekpminfo = uiState.hidekpminfo
+    val hideKpmInfo = uiState.hideKpmInfo
     val superuserCount = uiState.systemInfo.superuserCount
     val moduleCount = uiState.systemInfo.moduleCount
     val kpmModuleCount = uiState.systemInfo.kpmModuleCount
@@ -72,7 +72,7 @@ fun NavigationBar(
                 if (ThemeConfig.isEnableBlur)
                     Color.Transparent
                 else
-                    MaterialTheme.colorScheme.surfaceContainerHigh.copy(CardConfig.cardAlpha),
+                    MaterialTheme.colorScheme.surfaceContainer.copy(CardConfig.cardAlpha),
             contentColor = MaterialTheme.colorScheme.onSurface
         ) {
             destinations.forEachIndexed { index, destination ->
@@ -84,7 +84,7 @@ fun NavigationBar(
                     superuserCount = superuserCount,
                     moduleCount = moduleCount,
                     isHideOtherInfo = isHideOtherInfo,
-                    hidekpminfo = hidekpminfo,
+                    hideKpmInfo = hideKpmInfo,
                 )
             }
         }
@@ -100,7 +100,7 @@ fun NavigationBar(
                     if (ThemeConfig.isEnableBlur)
                         Color.Transparent
                     else
-                        MaterialTheme.colorScheme.surfaceContainerHigh.copy(CardConfig.cardAlpha),
+                        MaterialTheme.colorScheme.surfaceContainer.copy(CardConfig.cardAlpha),
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 modalContainerColor = WideNavigationRailDefaults.colors().modalContainerColor,
                 modalScrimColor = WideNavigationRailDefaults.colors().modalScrimColor,
@@ -116,7 +116,7 @@ fun NavigationBar(
                     superuserCount = superuserCount,
                     moduleCount = moduleCount,
                     isHideOtherInfo = isHideOtherInfo,
-                    hidekpminfo = hidekpminfo,
+                    hideKpmInfo = hideKpmInfo,
                 )
             }
         }
@@ -132,7 +132,7 @@ private fun NavigationRailItem(
     superuserCount: Int,
     moduleCount: Int,
     isHideOtherInfo: Boolean,
-    hidekpminfo: Boolean,
+    hideKpmInfo: Boolean,
 ) {
     WideNavigationRailItem(
         railExpanded = false,
@@ -147,7 +147,7 @@ private fun NavigationRailItem(
                         module = moduleCount,
                         kpm = kpmModuleCount,
                         isHideOtherInfo = isHideOtherInfo,
-                        hidekpminfo = hidekpminfo,
+                        hideKpmInfo = hideKpmInfo,
                     )
                 }
             ) {
@@ -179,7 +179,7 @@ private fun RowScope.BottomBarNavigationItem(
     superuserCount: Int,
     moduleCount: Int,
     isHideOtherInfo: Boolean,
-    hidekpminfo: Boolean,
+    hideKpmInfo: Boolean,
 ) {
     NavigationBarItem(
         selected = isSelected,
@@ -193,7 +193,7 @@ private fun RowScope.BottomBarNavigationItem(
                         module = moduleCount,
                         kpm = kpmModuleCount,
                         isHideOtherInfo = isHideOtherInfo,
-                        hidekpminfo = hidekpminfo,
+                        hideKpmInfo = hideKpmInfo,
                     )
                 }
             ) {
@@ -224,7 +224,7 @@ private fun DestinationBadge(
     module: Int,
     kpm: Int,
     isHideOtherInfo: Boolean,
-    hidekpminfo: Boolean,
+    hideKpmInfo: Boolean,
 ) {
     val count = when (dest) {
         BottomBarDestination.Kpm -> kpm
@@ -234,7 +234,7 @@ private fun DestinationBadge(
     }
 
     val shouldShow = when (dest) {
-        BottomBarDestination.Kpm -> count > 0 && !isHideOtherInfo && !hidekpminfo
+        BottomBarDestination.Kpm -> count > 0 && !isHideOtherInfo && !hideKpmInfo
         else -> count > 0 && !isHideOtherInfo
     }
 
