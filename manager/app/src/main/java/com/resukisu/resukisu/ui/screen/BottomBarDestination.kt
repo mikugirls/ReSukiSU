@@ -11,15 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import com.resukisu.resukisu.R
-import com.resukisu.resukisu.data.appPreferences
-import com.resukisu.resukisu.ksuApp
-import com.resukisu.resukisu.ui.component.ksuIsValid
 import com.resukisu.resukisu.ui.screen.main.HomePage
 import com.resukisu.resukisu.ui.screen.main.KpmPage
 import com.resukisu.resukisu.ui.screen.main.ModulePage
 import com.resukisu.resukisu.ui.screen.main.SettingsPage
 import com.resukisu.resukisu.ui.screen.main.SuperUserPage
-import com.resukisu.resukisu.ui.util.getKpmVersion
 
 enum class BottomBarDestination(
     val direction: @Composable (bottomPadding: Dp) -> Unit,
@@ -65,26 +61,26 @@ enum class BottomBarDestination(
     );
 
     companion object {
-        fun getPages(): List<BottomBarDestination> {
-            return if (ksuIsValid()) {
-                // 全功能管理器
-                val kpmVersion = runCatching {
-                    getKpmVersion()
-                }.getOrNull()
-
-                // 隐藏 KPM 功能开关
-                val hideKpm = ksuApp.appPreferences.getBoolean("hide_kpm_info", false)
-
+        /**
+         * 获取底部导航栏页面列表
+         * @param isKsuValid 是否在 KSU 环境下（即 root 环境）
+         * @param hideKpm 是否隐藏 KPM 页面（来自用户设置）
+         * @param kpmVersion KPM 版本号，若为空或 null 则视为 KPM 不可用
+         */
+        fun getPages(
+            isKsuValid: Boolean,
+            hideKpm: Boolean,
+            kpmVersion: String?
+        ): List<BottomBarDestination> {
+            return if (isKsuValid) {
                 BottomBarDestination.entries.filter {
                     when (it) {
-                        Kpm -> !hideKpm && (kpmVersion?.isNotEmpty() ?: false)
+                        Kpm -> !hideKpm && !kpmVersion.isNullOrEmpty()
                         else -> true
                     }
                 }
             } else {
-                BottomBarDestination.entries.filter {
-                    !it.rootRequired
-                }
+                BottomBarDestination.entries.filter { !it.rootRequired }
             }
         }
     }

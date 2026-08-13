@@ -11,11 +11,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.resukisu.resukisu.ui.activity.component.NavigationBar
 import com.resukisu.resukisu.ui.rememberMaterial3BlurBackdrop
 import com.resukisu.resukisu.ui.screen.BottomBarDestination
@@ -36,22 +35,30 @@ import com.resukisu.resukisu.ui.util.LocalPagerPage
 import com.resukisu.resukisu.ui.util.LocalPagerState
 import com.resukisu.resukisu.ui.util.LocalSelectedPage
 import com.resukisu.resukisu.ui.util.LocalSnackbarHost
-import kotlinx.coroutines.Dispatchers
+import com.resukisu.resukisu.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+
 
 @Composable
 fun MainScreen() {
-    var savedPages by rememberSaveable<MutableState<List<BottomBarDestination>>> {
-        mutableStateOf(emptyList())
-    }
+    val themeConfig: ThemeConfig = koinInject()
+    val homeViewModel = koinViewModel<HomeViewModel>()
+    val homeState by homeViewModel.state.collectAsStateWithLifecycle()
 
-    val pages by produceState(initialValue = savedPages) {
-        value = withContext(Dispatchers.IO) {
-            savedPages = BottomBarDestination.getPages()
-            return@withContext savedPages
-        }
+    // 获取页面列表，传入 hideKpm 和 kpmVersion
+    val pages = remember(
+        homeState.systemStatus.isValid,
+        homeState.hideKpmInfo,
+        homeState.systemInfo.kpmVersion
+    ) {
+        BottomBarDestination.getPages(
+            isKsuValid = homeState.systemStatus.isValid,
+            hideKpm = homeState.hideKpmInfo,
+            kpmVersion = homeState.systemInfo.kpmVersion
+        )
     }
 
     val coroutineScope = rememberCoroutineScope()
@@ -136,7 +143,7 @@ fun MainScreen() {
                         LocalSnackbarHost provides snackBarHostState,
                         LocalPagerPage provides pageIndex,
                         LocalBlurState provides rememberMaterial3BlurBackdrop(
-                            enableBlur = ThemeConfig.isEnableBlur,
+                            enableBlur = themeConfig.isEnableBlur,
                             pagerState = pagerState,
                             pagerPage = pageIndex,
                         ),

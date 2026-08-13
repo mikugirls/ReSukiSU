@@ -30,8 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.resukisu.resukisu.ksuApp
 import com.resukisu.resukisu.ui.screen.BottomBarDestination
 import com.resukisu.resukisu.ui.theme.CardConfig
 import com.resukisu.resukisu.ui.theme.ThemeConfig
@@ -39,8 +37,11 @@ import com.resukisu.resukisu.ui.theme.blurEffect
 import com.resukisu.resukisu.ui.util.LocalHandlePageChange
 import com.resukisu.resukisu.ui.util.LocalSelectedPage
 import com.resukisu.resukisu.ui.viewmodel.HomeViewModel
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 // TODO Add FloatingBottomBar as an choice to user
+
 @SuppressLint("ContextCastToActivity")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -48,8 +49,10 @@ fun NavigationBar(
     destinations: List<BottomBarDestination>,
     isBottomBar: Boolean
 ) {
-    // 从 ViewModel 获取所有计数数据
-    val homeViewModel = viewModel<HomeViewModel>(viewModelStoreOwner = ksuApp)
+    val themeConfig: ThemeConfig = koinInject()
+    val cardConfig: CardConfig = koinInject()
+    // 是否隐藏 badge
+    val homeViewModel = koinViewModel<HomeViewModel>()
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
     val isHideOtherInfo = uiState.isHideOtherInfo
     val hideKpmInfo = uiState.hideKpmInfo
@@ -69,10 +72,10 @@ fun NavigationBar(
                 )
                 .blurEffect(),
             containerColor =
-                if (ThemeConfig.isEnableBlur)
+                if (themeConfig.isEnableBlur)
                     Color.Transparent
                 else
-                    MaterialTheme.colorScheme.surfaceContainer.copy(CardConfig.cardAlpha),
+                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha),
             contentColor = MaterialTheme.colorScheme.onSurface
         ) {
             destinations.forEachIndexed { index, destination ->
@@ -97,10 +100,10 @@ fun NavigationBar(
                 .blurEffect(),
             colors = WideNavigationRailColors(
                 containerColor =
-                    if (ThemeConfig.isEnableBlur)
+                    if (themeConfig.isEnableBlur)
                         Color.Transparent
                     else
-                        MaterialTheme.colorScheme.surfaceContainer.copy(CardConfig.cardAlpha),
+                        MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha),
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 modalContainerColor = WideNavigationRailDefaults.colors().modalContainerColor,
                 modalScrimColor = WideNavigationRailDefaults.colors().modalScrimColor,

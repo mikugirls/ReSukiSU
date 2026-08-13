@@ -18,17 +18,25 @@ jobs:
       - build-manager
     runs-on: ubuntu-latest
     steps:
-      - name: Download Manager artifacts (release only)
+      - name: Download Manager artifacts
         uses: actions/download-artifact@v8
         with:
+          path: manager
           pattern: "*-release"
           merge-multiple: true
-          path: manager
 
-      - name: Display structure of downloaded files
-        run: ls -R
+      - name: Check is rc tags
+        id: is_rc_tag
+        run: |
+          if [ "${{ contains(github.ref_name,'-rc') }}" == 'true' ]; then
+            echo "IS_RC_TAG=true" >> $GITHUB_OUTPUT
+          else
+            echo "IS_RC_TAG=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Release
+      - name: release
         uses: softprops/action-gh-release@v3
         with:
-          files: manager/*.apk
+          #prerelease: ${{ steps.is_rc_tag.outputs.IS_RC_TAG == 'true' }}
+          files: |
+            manager/*.apk
