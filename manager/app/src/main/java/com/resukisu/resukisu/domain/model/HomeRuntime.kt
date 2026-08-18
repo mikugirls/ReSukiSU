@@ -46,11 +46,6 @@ data class HomeDashboardState(
     val betaManagerUpdate: ManagerUpdateInfo? = null,
     val isBetaManagerUpdateCheckFailed: Boolean = false,
     val isSimpleMode: Boolean = false,
-    val isHideOtherInfo: Boolean = false,
-    val isHideSusfsStatus: Boolean = false,
-    val isHideZygiskImplement: Boolean = false,
-    val isHideMetaModuleImplement: Boolean = false,
-    val isHideLinkCard: Boolean = false,
     // ---- 隐藏 KPM 信息开关 ----
     val hideKpmInfo: Boolean = false,
     val isInitialDataLoaded: Boolean = false,

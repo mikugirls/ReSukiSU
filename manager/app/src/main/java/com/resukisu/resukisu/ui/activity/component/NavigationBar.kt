@@ -46,31 +46,34 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NavigationBar(
+    modifier: Modifier = Modifier,
     destinations: List<BottomBarDestination>,
     isBottomBar: Boolean
 ) {
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
-    // 是否隐藏 badge
     val homeViewModel = koinViewModel<HomeViewModel>()
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
-    val isHideOtherInfo = uiState.isHideOtherInfo
+
+    // KPM 相关
     val hideKpmInfo = uiState.hideKpmInfo
+    val kpmModuleCount = uiState.systemInfo.kpmModuleCount
     val superuserCount = uiState.systemInfo.superuserCount
     val moduleCount = uiState.systemInfo.moduleCount
-    val kpmModuleCount = uiState.systemInfo.kpmModuleCount
-
-    // 翻页处理
     val page = LocalSelectedPage.current
     val handlePageChange = LocalHandlePageChange.current
 
     if (isBottomBar) {
         FlexibleBottomAppBar(
-            modifier = Modifier
+            modifier = modifier
                 .windowInsetsPadding(
                     WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal)
                 )
-                .blurEffect(),
+                .blurEffect(
+                    compensateHorizontalOverscroll = true,
+                    compensateVerticalOverscroll = true,
+                    useFixedSurfaceBoundsForOverscroll = true,
+                ),
             containerColor =
                 if (themeConfig.isEnableBlur)
                     Color.Transparent
@@ -82,22 +85,27 @@ fun NavigationBar(
                 BottomBarNavigationItem(
                     isSelected = index == page,
                     destination = destination,
-                    onClick = { handlePageChange(index) },
-                    kpmModuleCount = kpmModuleCount,
+                    onClick = {
+                        handlePageChange(index)
+                    },
                     superuserCount = superuserCount,
                     moduleCount = moduleCount,
-                    isHideOtherInfo = isHideOtherInfo,
+                    kpmModuleCount = kpmModuleCount,
                     hideKpmInfo = hideKpmInfo,
                 )
             }
         }
     } else {
         WideNavigationRail(
-            modifier = Modifier
+            modifier = modifier
                 .windowInsetsPadding(
                     WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal)
                 )
-                .blurEffect(),
+                .blurEffect(
+                    compensateHorizontalOverscroll = true,
+                    compensateVerticalOverscroll = false,
+                    useFixedSurfaceBoundsForOverscroll = true,
+                ),
             colors = WideNavigationRailColors(
                 containerColor =
                     if (themeConfig.isEnableBlur)
@@ -114,11 +122,12 @@ fun NavigationBar(
                 NavigationRailItem(
                     isSelected = index == page,
                     destination = destination,
-                    onClick = { handlePageChange(index) },
-                    kpmModuleCount = kpmModuleCount,
+                    onClick = {
+                        handlePageChange(index)
+                    },
                     superuserCount = superuserCount,
                     moduleCount = moduleCount,
-                    isHideOtherInfo = isHideOtherInfo,
+                    kpmModuleCount = kpmModuleCount,
                     hideKpmInfo = hideKpmInfo,
                 )
             }
@@ -131,10 +140,9 @@ private fun NavigationRailItem(
     isSelected: Boolean,
     destination: BottomBarDestination,
     onClick: () -> Unit,
-    kpmModuleCount: Int,
     superuserCount: Int,
     moduleCount: Int,
-    isHideOtherInfo: Boolean,
+    kpmModuleCount: Int,
     hideKpmInfo: Boolean,
 ) {
     WideNavigationRailItem(
@@ -149,7 +157,6 @@ private fun NavigationRailItem(
                         superUser = superuserCount,
                         module = moduleCount,
                         kpm = kpmModuleCount,
-                        isHideOtherInfo = isHideOtherInfo,
                         hideKpmInfo = hideKpmInfo,
                     )
                 }
@@ -178,10 +185,9 @@ private fun RowScope.BottomBarNavigationItem(
     isSelected: Boolean,
     destination: BottomBarDestination,
     onClick: () -> Unit,
-    kpmModuleCount: Int,
     superuserCount: Int,
     moduleCount: Int,
-    isHideOtherInfo: Boolean,
+    kpmModuleCount: Int,
     hideKpmInfo: Boolean,
 ) {
     NavigationBarItem(
@@ -195,7 +201,6 @@ private fun RowScope.BottomBarNavigationItem(
                         superUser = superuserCount,
                         module = moduleCount,
                         kpm = kpmModuleCount,
-                        isHideOtherInfo = isHideOtherInfo,
                         hideKpmInfo = hideKpmInfo,
                     )
                 }
@@ -226,7 +231,6 @@ private fun DestinationBadge(
     superUser: Int,
     module: Int,
     kpm: Int,
-    isHideOtherInfo: Boolean,
     hideKpmInfo: Boolean,
 ) {
     val count = when (dest) {
@@ -237,8 +241,8 @@ private fun DestinationBadge(
     }
 
     val shouldShow = when (dest) {
-        BottomBarDestination.Kpm -> count > 0 && !isHideOtherInfo && !hideKpmInfo
-        else -> count > 0 && !isHideOtherInfo
+        BottomBarDestination.Kpm -> count > 0 && !hideKpmInfo
+        else -> count > 0
     }
 
     AnimatedVisibility(

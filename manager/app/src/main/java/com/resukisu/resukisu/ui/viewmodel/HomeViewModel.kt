@@ -35,11 +35,6 @@ sealed interface HomeUiAction {
     data object AwaitInitialData : HomeUiAction
     data class Refresh(val showIndicator: Boolean = true) : HomeUiAction
     data class SetSimpleMode(val enabled: Boolean) : HomeUiAction
-    data class SetHideOtherInfo(val enabled: Boolean) : HomeUiAction
-    data class SetHideSusfsStatus(val enabled: Boolean) : HomeUiAction
-    data class SetHideZygiskImplement(val enabled: Boolean) : HomeUiAction
-    data class SetHideMetaModuleImplement(val enabled: Boolean) : HomeUiAction
-    data class SetHideLinkCard(val enabled: Boolean) : HomeUiAction
     data class SetHideKpmInfo(val enabled: Boolean) : HomeUiAction
     data class Reboot(val reason: String) : HomeUiAction
 }
@@ -101,23 +96,23 @@ class HomeViewModel(
                     val module = async { getModuleOverview() }
                     val superusers = async { getSuperuserCount() }
                     val managers = async { getManagerRuntimeInfo() }
-                    val susfs = if (!state.value.isHideSusfsStatus) {
-                        async { getSuSFSStatus() }
-                    } else {
-                        null
-                    }
+                    val susfs = async { getSuSFSStatus() }
 
-                    // KPM 信息
-                    val kpmModuleCount = async { runCatching { getKpmModuleCount() }.getOrDefault(0) }
-                    val kpmVersion = async { runCatching { getKpmVersion() }.getOrDefault("") }
+                    // 获取 KPM 信息
+                    val kpmModuleCountDeferred = async {
+                        runCatching { getKpmModuleCount() }.getOrDefault(0)
+                    }
+                    val kpmVersionDeferred = async {
+                        runCatching { getKpmVersion() }.getOrDefault("")
+                    }
 
                     val basicInfo = basic.await()
                     val moduleInfo = module.await()
                     val superuserCount = superusers.await()
                     val managerInfo = managers.await()
-                    val susfsInfo = susfs?.await()
-                    val kpmCount = kpmModuleCount.await()
-                    val kpmVer = kpmVersion.await()
+                    val susfsInfo = susfs.await()
+                    val kpmCount = kpmModuleCountDeferred.await()
+                    val kpmVer = kpmVersionDeferred.await()
 
                     homeStateRepository.update { current ->
                         current.copy(
@@ -127,10 +122,10 @@ class HomeViewModel(
                                 deviceModel = basicInfo.deviceModel,
                                 managerVersion = basicInfo.managerVersion,
                                 selinuxStatus = basicInfo.selinuxStatus,
-                                susfsEnabled = susfsInfo?.enabled ?: false,
-                                susfsVersionSupported = susfsInfo?.enabled ?: false,
-                                susfsVersion = susfsInfo?.version.orEmpty(),
-                                susfsFeatures = susfsInfo?.enabledFeatures.orEmpty(),
+                                susfsEnabled = susfsInfo.enabled,
+                                susfsVersionSupported = susfsInfo.enabled,
+                                susfsVersion = susfsInfo.version,
+                                susfsFeatures = susfsInfo.enabledFeatures,
                                 superuserCount = superuserCount,
                                 moduleCount = moduleInfo.count,
                                 managersList = managerInfo,
@@ -138,7 +133,6 @@ class HomeViewModel(
                                 zygiskImplement = moduleInfo.zygiskImplementation,
                                 metaModuleImplement = moduleInfo.metaModuleImplementation,
                                 seccompStatus = basicInfo.seccompStatus,
-                                // KPM 扩展字段（需在 HomeSystemInfo 中定义）
                                 kpmModuleCount = kpmCount,
                                 kpmVersion = kpmVer,
                             ),
@@ -162,24 +156,13 @@ class HomeViewModel(
     fun handleSimpleModeChange(enabled: Boolean) =
         updatePreference(PREF_SIMPLE_MODE, enabled) { it.copy(isSimpleMode = enabled) }
 
-    fun handleHideOtherInfoChange(enabled: Boolean) =
-        updatePreference(PREF_HIDE_OTHER_INFO, enabled) { it.copy(isHideOtherInfo = enabled) }
-
-    fun handleHideSusfsStatusChange(enabled: Boolean) =
-        updatePreference(PREF_HIDE_SUSFS, enabled) { it.copy(isHideSusfsStatus = enabled) }
-
-    fun handleHideZygiskImplementChange(enabled: Boolean) =
-        updatePreference(PREF_HIDE_ZYGISK, enabled) { it.copy(isHideZygiskImplement = enabled) }
-
-    fun handleHideMetaModuleImplementChange(enabled: Boolean) =
-        updatePreference(PREF_HIDE_META, enabled) { it.copy(isHideMetaModuleImplement = enabled) }
-
-    fun handleHideLinkCardChange(enabled: Boolean) =
-        updatePreference(PREF_HIDE_LINK, enabled) { it.copy(isHideLinkCard = enabled) }
-
     fun handleHideKpmInfoChange(enabled: Boolean) =
         updatePreference(PREF_HIDE_KPM, enabled) { it.copy(hideKpmInfo = enabled) }
 
+    /**
+     * 单独刷新 KPM 模块计数和版本信息，不触发完整页面刷新
+     * 适用于从 KPM 管理页返回后仅更新角标/版本号的场景
+     */
     fun refreshKpmModuleInfo(): Job {
         return viewModelScope.launch {
             refreshMutex.withLock {
@@ -202,11 +185,6 @@ class HomeViewModel(
             HomeUiAction.AwaitInitialData -> viewModelScope.launch { awaitInitialData() }
             is HomeUiAction.Refresh -> refreshData(action.showIndicator)
             is HomeUiAction.SetSimpleMode -> handleSimpleModeChange(action.enabled)
-            is HomeUiAction.SetHideOtherInfo -> handleHideOtherInfoChange(action.enabled)
-            is HomeUiAction.SetHideSusfsStatus -> handleHideSusfsStatusChange(action.enabled)
-            is HomeUiAction.SetHideZygiskImplement -> handleHideZygiskImplementChange(action.enabled)
-            is HomeUiAction.SetHideMetaModuleImplement -> handleHideMetaModuleImplementChange(action.enabled)
-            is HomeUiAction.SetHideLinkCard -> handleHideLinkCardChange(action.enabled)
             is HomeUiAction.SetHideKpmInfo -> handleHideKpmInfoChange(action.enabled)
             is HomeUiAction.Reboot -> viewModelScope.launch {
                 reboot(action.reason).onFailure {
@@ -254,11 +232,6 @@ class HomeViewModel(
         homeStateRepository.update {
             it.copy(
                 isSimpleMode = getBooleanPreference(PREF_SIMPLE_MODE),
-                isHideOtherInfo = getBooleanPreference(PREF_HIDE_OTHER_INFO),
-                isHideSusfsStatus = getBooleanPreference(PREF_HIDE_SUSFS),
-                isHideLinkCard = getBooleanPreference(PREF_HIDE_LINK),
-                isHideZygiskImplement = getBooleanPreference(PREF_HIDE_ZYGISK),
-                isHideMetaModuleImplement = getBooleanPreference(PREF_HIDE_META),
                 hideKpmInfo = getBooleanPreference(PREF_HIDE_KPM),
             )
         }
@@ -279,11 +252,6 @@ class HomeViewModel(
         const val PREF_CHECK_UPDATE = "check_update"
         const val PREF_CHECK_BETA_UPDATE = "check_beta_update"
         const val PREF_SIMPLE_MODE = "is_simple_mode"
-        const val PREF_HIDE_OTHER_INFO = "is_hide_other_info"
-        const val PREF_HIDE_SUSFS = "is_hide_susfs_status"
-        const val PREF_HIDE_LINK = "is_hide_link_card"
-        const val PREF_HIDE_ZYGISK = "is_hide_zygisk_Implement"
-        const val PREF_HIDE_META = "is_hide_meta_module_Implement"
         const val PREF_HIDE_KPM = "hide_kpm_info"
     }
 }
