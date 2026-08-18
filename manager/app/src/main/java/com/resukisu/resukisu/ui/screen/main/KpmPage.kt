@@ -327,7 +327,7 @@ fun KpmPage(bottomPadding: Dp) {
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Refresh,
-                            contentDescription = stringResource(R.string.refresh),
+                            contentDescription = null,
                         )
                     }
                 },
