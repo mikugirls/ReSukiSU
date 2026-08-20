@@ -2,6 +2,7 @@ package com.resukisu.resukisu.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.resukisu.resukisu.data.shell.KsuCliRepository
 import com.resukisu.resukisu.data.system.HomeStateRepository
 import com.resukisu.resukisu.domain.model.HomeDashboardState
 import com.resukisu.resukisu.domain.model.HomeSystemInfo
@@ -17,8 +18,6 @@ import com.resukisu.resukisu.domain.usecase.GetSuSFSStatusUseCase
 import com.resukisu.resukisu.domain.usecase.IsNetworkAvailableUseCase
 import com.resukisu.resukisu.domain.usecase.RebootUseCase
 import com.resukisu.resukisu.domain.usecase.SetBooleanPreferenceUseCase
-import com.resukisu.resukisu.ui.util.getKpmModuleCount
-import com.resukisu.resukisu.ui.util.getKpmVersion
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -56,6 +55,7 @@ class HomeViewModel(
     private val getBooleanPreference: GetBooleanPreferenceUseCase,
     private val setBooleanPreference: SetBooleanPreferenceUseCase,
     private val reboot: RebootUseCase,
+    private val ksuCliRepository: KsuCliRepository,
 ) : ViewModel() {
     val state = homeStateRepository.state
     val uiState = state
@@ -100,10 +100,10 @@ class HomeViewModel(
 
                     // 获取 KPM 信息
                     val kpmModuleCountDeferred = async {
-                        runCatching { getKpmModuleCount() }.getOrDefault(0)
+                        runCatching { ksuCliRepository.getKpmModuleCount() }.getOrDefault(0)
                     }
                     val kpmVersionDeferred = async {
-                        runCatching { getKpmVersion() }.getOrDefault("")
+                        runCatching { ksuCliRepository.getKpmVersion() }.getOrDefault("")
                     }
 
                     val basicInfo = basic.await()
@@ -160,14 +160,13 @@ class HomeViewModel(
         updatePreference(PREF_HIDE_KPM, enabled) { it.copy(hideKpmInfo = enabled) }
 
     /**
-     * 单独刷新 KPM 模块计数和版本信息，不触发完整页面刷新
-     * 适用于从 KPM 管理页返回后仅更新角标/版本号的场景
+     * 单独刷新 KPM 信息（不触发完整刷新）
      */
     fun refreshKpmModuleInfo(): Job {
         return viewModelScope.launch {
             refreshMutex.withLock {
-                val kpmCount = runCatching { getKpmModuleCount() }.getOrDefault(0)
-                val kpmVer = runCatching { getKpmVersion() }.getOrDefault("")
+                val kpmCount = runCatching { ksuCliRepository.getKpmModuleCount() }.getOrDefault(0)
+                val kpmVer = runCatching { ksuCliRepository.getKpmVersion() }.getOrDefault("")
                 homeStateRepository.update { current ->
                     current.copy(
                         systemInfo = current.systemInfo.copy(

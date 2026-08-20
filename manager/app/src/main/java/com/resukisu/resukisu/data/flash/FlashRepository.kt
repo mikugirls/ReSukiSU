@@ -48,8 +48,8 @@ class FlashRepository(
     fun startKernelFlash(
         kernelUri: String,
         selectedSlot: String?,
-        kpmPatchEnabled: Boolean,
-        kpmUndoPatch: Boolean
+        kpmPatchEnabled: Boolean = false,
+        kpmUndoPatch: Boolean = false,
     ) {
         val current = mutableSession.value
         // 如果请求相同且已有 worker 在运行，则忽略重复调用
@@ -58,6 +58,8 @@ class FlashRepository(
         mutableSession.value = KernelFlashSession(
             requestUri = kernelUri,
             selectedSlot = selectedSlot,
+            kpmPatchEnabled = kpmPatchEnabled,
+            kpmUndoPatch = kpmUndoPatch,
             progress = FlashProgress(),
         )
         observationJob?.cancel()
@@ -74,7 +76,7 @@ class FlashRepository(
             ksuCliRepository = ksuCliRepository,
             slot = selectedSlot,
             kpmPatchEnabled = kpmPatchEnabled,
-            kpmUndoPatch = kpmUndoPatch
+            kpmUndoPatch = kpmUndoPatch,
         ).also {
             it.uri = kernelUri.toUri()
             it.start()

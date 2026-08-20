@@ -208,7 +208,7 @@ class HorizonKernelWorker(
             throw IOException("Local kpimg file extraction failed")
         }
 
-        runCommand(true, "chmod a+rx $kptoolsPath")
+        runCommand("chmod a+rx $kptoolsPath")
     }
 
     /**
@@ -221,7 +221,7 @@ class HorizonKernelWorker(
             File(extractDir).mkdirs()
 
             // 解压压缩包到临时目录
-            val unzipResult = runCommand(true, "cd $extractDir && unzip -o \"${zipFile.absolutePath}\"")
+            val unzipResult = runCommand("cd $extractDir && unzip -o \"${zipFile.absolutePath}\"")
             if (unzipResult != 0) {
                 throw IOException(context.getString(R.string.kpm_extract_zip_failed))
             }
@@ -239,8 +239,8 @@ class HorizonKernelWorker(
             state.addLog(context.getString(R.string.kpm_found_image_file, imageFile))
 
             // 复制KPM工具到Image文件所在目录
-            runCommand(true, "cp $workDir/kptools $imageDir/")
-            runCommand(true, "cp $workDir/kpimg $imageDir/")
+            runCommand("cp $workDir/kptools $imageDir/")
+            runCommand("cp $workDir/kpimg $imageDir/")
 
             // 执行KPM修补命令
             val patchCommand = if (kpmUndoPatch) {
@@ -249,7 +249,7 @@ class HorizonKernelWorker(
                 "cd $imageDir && chmod a+rx kptools && ./kptools -p -s 123 -i $imageName -k kpimg -o oImage && mv oImage $imageName"
             }
 
-            val patchResult = runCommand(true, patchCommand)
+            val patchResult = runCommand(patchCommand)
             if (patchResult != 0) {
                 throw IOException(
                     if (kpmUndoPatch) context.getString(R.string.kpm_undo_patch_failed)
@@ -263,7 +263,7 @@ class HorizonKernelWorker(
             )
 
             // 清理KPM工具文件
-            runCommand(true, "rm -f $imageDir/kptools $imageDir/kpimg $imageDir/oImage")
+            runCommand("rm -f $imageDir/kptools $imageDir/kpimg $imageDir/oImage")
 
             // 重新打包ZIP文件
             val patchedFilePath = "$workDir/patched_${zipFile.name}"
@@ -271,16 +271,15 @@ class HorizonKernelWorker(
             repackZipFolder(extractDir, patchedFilePath)
 
             // 替换原始文件
-            runCommand(true, "mv \"$patchedFilePath\" \"${zipFile.absolutePath}\"")
+            runCommand("mv \"$patchedFilePath\" \"${zipFile.absolutePath}\"")
 
             state.addLog(context.getString(R.string.kpm_file_repacked))
-
         } catch (e: Exception) {
             state.addLog(context.getString(R.string.kpm_patch_operation_failed, e.message))
             throw e
         } finally {
             // 清理临时文件
-            runCommand(true, "rm -rf $workDir")
+            runCommand("rm -rf $workDir")
         }
     }
 
@@ -314,9 +313,8 @@ class HorizonKernelWorker(
         }
     }
 
-    private fun runCommand(su: Boolean, cmd: String): Int {
-        val shell = if (su) "su" else "sh"
-        val process = Runtime.getRuntime().exec(arrayOf(shell, "-c", cmd))
+    private fun runCommand(cmd: String): Int {
+        val process = Runtime.getRuntime().exec(arrayOf("su", "-c", cmd))
 
         return try {
             process.waitFor()

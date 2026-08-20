@@ -10,9 +10,8 @@ import android.widget.Toast
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.resukisu.resukisu.data.packageinfo.InstalledPackageRepository
+import com.resukisu.resukisu.data.shell.KsuCliRepository
 import com.resukisu.resukisu.data.webui.WebUiRepository
-import com.resukisu.resukisu.ui.util.controlKpmModule
-import com.resukisu.resukisu.ui.util.listKpmModules
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -22,6 +21,7 @@ class WebViewInterface(
     private val state: WebUIState,
     private val packageRepository: InstalledPackageRepository,
     private val webUiRepository: WebUiRepository,
+    private val ksuCliRepository: KsuCliRepository,
 ) {
     private val webView get() = state.webView!!
     private val modDir get() = state.modDir
@@ -113,23 +113,23 @@ class WebViewInterface(
             onStdout = { emitData("stdout", it) },
             onStderr = { emitData("stderr", it) },
             onComplete = { result ->
-            val emitExitCode =
-                "javascript: (function() { try { ${callbackFunc}.emit('exit', ${result.code}); } catch(e) { console.error(`emitExit error: \${e}`); } })();"
-            webView.post {
-                webView.loadUrl(emitExitCode)
-            }
-
-            if (result.code != 0) {
-                val emitErrCode =
-                    "javascript: (function() { try { var err = new Error(); err.exitCode = ${result.code}; err.message = ${
-                        JSONObject.quote(
-                            result.stderr
-                        )
-                    };${callbackFunc}.emit('error', err); } catch(e) { console.error('emitErr', e); } })();"
+                val emitExitCode =
+                    "javascript: (function() { try { ${callbackFunc}.emit('exit', ${result.code}); } catch(e) { console.error(`emitExit error: \${e}`); } })();"
                 webView.post {
-                    webView.loadUrl(emitErrCode)
+                    webView.loadUrl(emitExitCode)
                 }
-            }
+
+                if (result.code != 0) {
+                    val emitErrCode =
+                        "javascript: (function() { try { var err = new Error(); err.exitCode = ${result.code}; err.message = ${
+                            JSONObject.quote(
+                                result.stderr
+                            )
+                        };${callbackFunc}.emit('error', err); } catch(e) { console.error('emitErr', e); } })();"
+                    webView.post {
+                        webView.loadUrl(emitErrCode)
+                    }
+                }
             }
         )
     }
@@ -243,12 +243,12 @@ class WebViewInterface(
     // KPM 支持接口
     @JavascriptInterface
     fun listAllKpm(): String {
-        return listKpmModules()
+        return ksuCliRepository.listKpmModules()
     }
 
     @JavascriptInterface
     fun controlKpm(name: String, args: String): Int {
-        return controlKpmModule(name, args)
+        return ksuCliRepository.controlKpmModule(name, args)
     }
 }
 

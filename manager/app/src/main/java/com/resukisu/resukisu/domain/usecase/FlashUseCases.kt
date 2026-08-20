@@ -11,7 +11,7 @@ class StartKernelFlashUseCase(private val repository: FlashRepository) {
     operator fun invoke(
         kernelUri: String,
         selectedSlot: String?,
-        kpmPatchEnabled: Boolean,
-        kpmUndoPatch: Boolean
+        kpmPatchEnabled: Boolean = false,
+        kpmUndoPatch: Boolean = false,
     ) = repository.startKernelFlash(kernelUri, selectedSlot, kpmPatchEnabled, kpmUndoPatch)
 }
