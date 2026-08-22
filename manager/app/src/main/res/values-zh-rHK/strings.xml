@@ -533,6 +533,11 @@
     <string name="susfs_tab_sus_kstat">偽造元數據</string>
     <string name="susfs_map_subtype">隱藏映射</string>
     <string name="susfs_redirect_entry_description">%1$s · %2$s</string>
+    <string name="settings_custom_monospace_font">使用內置等寬字體</string>
+    <string name="settings_custom_monospace_font_summary">使用內置 JetBrains Mono 字體顯示日誌，以避免系統等寬字體嘅問題</string>
+    <string name="susfs_enable_config">SUSFS 管理器</string>
+    <string name="susfs_enable_config_summary">啟用內置 SUSFS 管理器，可能與第三方模組衝突。</string>
+    <string name="susfs_config_disable_warning">內置 SUSFS 管理器已停用。請啟用它或安裝第三方模組以使用 SUSFS 功能。</string>
 
     <!-- KPM (restored) -->
     <string name="close_notice">關閉</string>
