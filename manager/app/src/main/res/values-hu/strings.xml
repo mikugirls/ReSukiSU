@@ -535,4 +535,9 @@
     <string name="susfs_kstat_statically_fields">Statikus mezők (opcionális, az alapértelmezett értékek megtartásához hagyd üresen)</string>
     <string name="sus_maps_warning">Fontos kikötés: Azoknál az applikációknál, amelyeknek jól implementált beavatkozás érzékelő mechanizmusai vannak, a beavatkozások észlelésének és felismerésének megakadályozása nem garantálható.</string>
     <string name="sus_maps_debug_info">A bejegyzést megelőzően keresd ki a célapplikáció PID és UID azonosítóit a „ps -enf\" paranccsal, ellenőrizd a releváns elérési útvonalakat a „/proc/&lt;pid&gt;/maps\" címtérben, és vesd össze az értékeket a „/proc/1/mountinfo\" címtérben szereplővel az egyezésért. Csak akkor működik megfelelően a címtér fájlleképezés rejtése memóriából funkció, amennyiben az értékek megfelelően lettek egyeztetve.</string>
+    <string name="settings_custom_monospace_font">Beépített monospace betűtípus használata</string>
+    <string name="settings_custom_monospace_font_summary">A napló megjelenítéséhez beépített JetBrains Mono betűtípus használata, ez segíthet elkerülni az android rendszer monospace betűtípusával kapcsolatos problémákat</string>
+    <string name="susfs_enable_config">SuSFS Menedzser</string>
+    <string name="susfs_enable_config_summary">Beépített SuSFS Menedzser engedélyezése vagy letiltása. Valamely harmadik féltől származó modullal összeférhetetlen lehet.</string>
+    <string name="susfs_config_disable_warning">Beépített SuSFS Menedzser letiltva. Engedélyezd, vagy telepíts egy harmadik féltől származó modult a SuSFS funkciók használatához.</string>
 </resources>
