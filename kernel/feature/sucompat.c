@@ -511,6 +511,7 @@ int ksu_handle_faccessat(int *dfd, struct filename **filename, int *mode, int *_
     }
 
     revert_creds(old_cred);
+    return 0;
 }
 #else
 int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode, int *__unused_flags)
