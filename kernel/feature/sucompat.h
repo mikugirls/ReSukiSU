@@ -14,12 +14,13 @@ void ksu_sucompat_init(void);
 void ksu_sucompat_exit(void);
 
 // Handler functions exported for hook_manager
-int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode, int *__unused_flags);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0) && defined(CONFIG_KSU_SUSFS)
+#ifdef CONFIG_KSU_SUSFS
+int ksu_handle_faccessat(int *dfd, struct filename **filename, int *mode, int *__unused_flags);
 int ksu_handle_stat(int *dfd, struct filename **filename, int *flags);
 #else
+int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode, int *__unused_flags);
 int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0) && defined(CONFIG_KSU_SUSFS)
+#endif // #ifdef CONFIG_KSU_SUSFS
 
 #ifdef CONFIG_KSU_TRACEPOINT_HOOK
 // WARNING! THERE HAVE TRYING TO CALL SYSCALL INTERNALLY
@@ -28,7 +29,13 @@ long ksu_handle_faccessat_sucompat_internal(int orig_nr, struct pt_regs *regs);
 long ksu_handle_stat_sucompa_internal(int orig_nr, struct pt_regs *regs);
 long ksu_handle_execve_sucompat_internal(const char __user **filename_user, int orig_nr, struct pt_regs *regs);
 long ksu_handle_execveat_sucompat_internal(const char __user **filename_user, int orig_nr, struct pt_regs *regs);
-#else // #ifndef CONFIG_KSU_TRACEPOINT_HOOK
+#elif defined(CONFIG_KSU_SUSFS) // susfs
+#include <linux/susfs_def.h>
+
+#define ksu_is_current_proc_unprivillege susfs_is_current_proc_no_su
+#define ksu_set_current_proc_unprivillege susfs_set_current_proc_no_su
+#define ksu_clear_current_proc_unprivillege susfs_clear_current_proc_no_su
+#else // manual hook
 
 // 63 already used as TIF_KSU_DISABLE_ESCAPE_WITH_ROOT (64bit)
 // 31 already used as TIF_KSU_DISABLE_ESCAPE_WITH_ROOT (32bit)
