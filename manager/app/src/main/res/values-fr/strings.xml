@@ -61,8 +61,8 @@
     <string name="profile_selinux_domain">Domaine</string>
     <string name="profile_selinux_rules">Règles</string>
     <string name="module_update">Mettre à jour</string>
-    <string name="module_downloading">Téléchargement du module : %s</string>
-    <string name="module_start_downloading">Début du téléchargement de : %s</string>
+    <string name="module_downloading">Téléchargement du module : %s</string>
+    <string name="module_start_downloading">Début du téléchargement de : %s</string>
     <string name="new_version_available">Nouvelle version %s disponible, appuyer ici pour mettre à jour.</string>
     <string name="launch_app">Lancer</string>
     <string name="force_stop_app" formatted="false">Forcer l\'arrêt</string>
@@ -86,9 +86,9 @@
     <string name="app_profile_template_import_success">Importation réussie</string>
     <string name="app_profile_template_sync">Synchroniser les modèles en ligne</string>
     <string name="app_profile_template_save_failed">Échec de l\'enregistrement du modèle</string>
-    <string name="app_profile_template_import_empty">Le presse-papiers est vide !</string>
-    <string name="module_changelog_failed">Échec de récupération du journal des modifications : %s</string>
-    <string name="grant_root_failed">Échec de l\'octroi des privilèges root !</string>
+    <string name="app_profile_template_import_empty">Le presse-papiers est vide !</string>
+    <string name="module_changelog_failed">Échec de récupération du journal des modifications : %s</string>
+    <string name="grant_root_failed">Échec de l\'octroi des privilèges root !</string>
     <string name="close">Fermer</string>
     <string name="direct_install">Installation directe (recommandé)</string>
     <string name="select_file">Sélectionner un fichier d\'image à modifier</string>
@@ -107,7 +107,7 @@
     <string name="flashing">Flashage en cours</string>
     <string name="flash_success">Flashage réussi</string>
     <string name="flash_failed">Échec du flashage</string>
-    <string name="selected_lkm">LKM sélectionné : %s</string>
+    <string name="selected_lkm">LKM sélectionné : %s</string>
     <string name="save_log">Enregistrer les journaux</string>
     <string name="log_saved">Journaux enregistrés</string>
     <string name="unknown_module">Module inconnu</string>
@@ -171,7 +171,7 @@
     <string name="app_dpi_title">Densité d\'affichage (en PPP)</string>
     <string name="app_dpi_summary">Ajuste la densité d\'affichage de l\'écran pour cette application</string>
     <string name="dpi_size_small">Petite</string>
-    <string name="dpi_size_medium">Moyenne </string>
+    <string name="dpi_size_medium">Moyenne</string>
     <string name="dpi_size_large">Grande</string>
     <string name="dpi_size_extra_large">Surdimensionnée</string>
     <string name="dpi_size_custom">Personnalisable</string>
