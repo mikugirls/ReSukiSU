@@ -537,6 +537,8 @@
     <string name="susfs_enable_config_summary">Увімкнути вбудований менеджер SUSFS. Може конфліктувати зі сторонніми модулями.</string>
     <string name="susfs_enable_config">Менеджер SUSFS</string>
     <string name="settings_custom_monospace_font">Використовувати вбудований моноширинний шрифт</string>
+    <string name="settings_webview_zygote_umount_summary">Запобігає витоку інформації з процесу WebView, але це може порушити роботу модулів. Перезавантажте, щоб застосувати зміни.</string>
+    <string name="settings_webview_zygote_umount">Розмонтувати WebView</string>
 
     <!-- KPM (restored) -->
     <string name="close_notice">Закрити</string>
