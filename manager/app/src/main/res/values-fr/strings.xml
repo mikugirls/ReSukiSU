@@ -166,8 +166,8 @@
     <string name="background_set_success">Arrière-plan appliqué</string>
     <string name="background_removed">Arrière-plan personnalisé supprimé</string>
     <string name="icon_switch_title">Icône alternative</string>
-    <string name="icon_switch_summary">Change l\'icône de l\'application en icône de KernelSU dans le lanceur</string>
-    <string name="icon_switched">Icône changée</string>
+    <string name="icon_switch_summary">Remplace l\'icône de l\'application dans le lanceur par celle de KernelSU</string>
+    <string name="icon_switched">Icône remplacée</string>
     <string name="app_dpi_title">Densité d\'affichage (en PPP)</string>
     <string name="app_dpi_summary">Ajuste la densité d\'affichage de l\'écran pour cette application</string>
     <string name="dpi_size_small">Petite</string>
@@ -537,4 +537,6 @@
     <string name="susfs_backup_restore_default">Configuration par défaut</string>
     <string name="susfs_backup_restore_default_desc">Supprime la configuration SuSFS actuelle et restaure la configuration par défaut</string>
     <string name="susfs_redirect_important_notes">Remarques importantes :\n• Les chemins cible et redirigé doivent exister avant l’ajout d’une entrée\n• les permissions SELinux pour les deux chemins doivent être configurées.\n• La redirection affecte uniquement les processus correspondant au schéma d\'UID sélectionné.</string>
+    <string name="settings_webview_zygote_umount_summary">Empêche les fuites d\'informations du processus WebView, mais peut causer le dysfonctionnement de certains modules. Redémarrer pour appliquer les modifications</string>
+    <string name="settings_webview_zygote_umount">Démontage pour WebView</string>
 </resources>
