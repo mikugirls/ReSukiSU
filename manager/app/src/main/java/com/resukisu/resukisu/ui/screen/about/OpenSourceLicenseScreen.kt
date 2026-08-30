@@ -150,8 +150,28 @@ fun OpenSourceLicenseScreen() {
                     contentColor = contentColorFor(MaterialTheme.colorScheme.primary)
                 )
             ),
+            // v15's TraditionalRow draws an opaque `rowBackground` via drawBehind, which covers
+            // renderBackgroundBlur. Set rowBackground to transparent when blur is enabled.
+            variantColors = LibraryDefaults.m3VariantColors(
+                rowBackground = if (themeConfig.isEnableBlurExp) Color.Transparent else MaterialTheme.colorScheme.surface,
+            ),
+            // v15 removed `libraryModifier`; use the `libraryRow` slot to wrap the default
+            // LibraryRow with the equivalent per-item modifier (padding + clip + blur).
+            libraryRow = { _, library, expanded, toggle, style ->
+                LibraryRow(
+                    library = library,
+                    expanded = expanded,
+                    onToggle = toggle,
+                    style = style,
+                    modifier = Modifier
+                        .padding(vertical = 4.dp)
+                        .clip(RoundedCornerShape(cornerRadius))
+                        .renderBackgroundBlur(),
+                )
+            },
             onLibraryClick = { library ->
                 selectedLibrary = library
+                true
             }
         )
 
