@@ -478,6 +478,7 @@ fun RebootDropdownItems(
 ) {
     items.onEachIndexed { index, (id, reason) ->
         DropdownMenuItem(
+            shape = MenuDefaults.itemShape(index, items.size).shape,
             text = { Text(stringResource(id)) },
             onClick = { onReboot(reason) },
         )
