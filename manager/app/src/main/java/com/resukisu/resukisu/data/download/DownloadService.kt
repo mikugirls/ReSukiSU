@@ -388,6 +388,25 @@ class DownloadService : Service() {
             setDataAndType(installUri, "application/vnd.android.package-archive")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
+
+        // 使用 resolveActivity 获取能够处理该 Intent 的 Activity 信息
+        val resolveInfo = packageManager.resolveActivity(installIntent, 0)
+        if (resolveInfo?.activityInfo == null) {
+            // 正常情况下不会发生，但如果找不到处理程序，则不添加安装按钮
+            return NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(getString(R.string.download_complete_title))
+                .setContentText(getString(R.string.download_complete_content, target.name))
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setAutoCancel(true)
+                .build()
+        }
+
+        // 同时指定包名和类名，使 Intent 完全显式
+        installIntent.setClassName(
+            resolveInfo.activityInfo.packageName,
+            resolveInfo.activityInfo.name
+        )
+
         val installPendingIntent = PendingIntent.getActivity(
             this,
             COMPLETION_NOTIFICATION_ID_BASE + id,
