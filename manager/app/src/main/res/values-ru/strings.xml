@@ -8,7 +8,7 @@
     <string name="home_unsupported">Не поддерживается</string>
     <string name="home_unsupported_reason">Драйвера KernelSU не найдены в ядре, неверное ядро?</string>
     <string name="home_kernel">Версия ядра</string>
-    <string name="home_susfs_version">Статус SuSFS</string>
+    <string name="home_susfs_version">Версия SuSFS</string>
     <string name="home_manager_version">Версия менеджера</string>
     <string name="home_selinux_status">Состояние SELinux</string>
     <string name="selinux_status_disabled">Отключен</string>
@@ -118,7 +118,7 @@
     <string name="module_downloading">Скачивание модуля: %s</string>
     <string name="module_start_downloading">Начало скачивания: %s</string>
     <string name="module_action_success">Действие модуля выполнено успешно.</string>
-    <string name="new_version_available">Новая версия: %s доступна, нажмите чтобы скачать.</string>
+    <string name="new_version_available">Новая версия %s доступна, нажмите чтобы скачать.</string>
     <string name="launch_app">Запустить</string>
     <string name="force_stop_app" formatted="false">Остановить принудительно</string>
     <string name="restart_app">Перезапустить</string>
@@ -515,11 +515,11 @@
     <string name="dynamic_manager_clear_config_summary">Отключить конфигурацию динамического менеджера</string>
     <string name="dynamic_manager_fixed_manager_summary">%1$s\nПод управлением %2$s</string>
     <string name="dynamic_manager_grant_confirm_title">Подтвердить авторизацию?</string>
-    <string name="dynamic_manager_grant_confirm_message">Выбранное приложение станет динамическим менеджером. Если динамический менеджер уже настроен, он будет немедленно аннулирован.\n\nЭто дает наивысший уровень прав для данного устройства. Если вы не знаете, что это значит, нажмите «отмена».</string>
-    <string name="dynamic_manager_clear_confirm_title">Очистить динамический менеджер</string>
-    <string name="dynamic_manager_clear_confirm_message">Вы уверены, что хотите очистить конфигурацию динамического менеджера?</string>
+    <string name="dynamic_manager_grant_confirm_message">Выбранное приложение станет динамическим менеджером. Если динамический менеджер уже настроен, его конфигурация будет немедленно сброшена.\n\nЭто предоставляет наивысший уровень прав на этом устройстве. Если вы не уверены в своих действиях, нажмите «Отмена».</string>
+    <string name="dynamic_manager_clear_confirm_title">Сбросить динамический менеджер</string>
+    <string name="dynamic_manager_clear_confirm_message">Вы уверены, что хотите сбросить конфигурацию динамического менеджера?</string>
     <string name="manage_managers">Управление менеджерами</string>
-    <string name="home_version_info">Инфо о версии</string>
+    <string name="home_version_info">Сведения</string>
     <string name="home_status_info">Статус</string>
     <string name="home_short_info">Суперпользователь: %1$d, модули: %2$d</string>
     <string name="home_kernel_version">Версия драйвера ядра</string>
