@@ -118,6 +118,7 @@ fun AppProfileScreen(
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val appGroup = uiState.appGroup
     val appLabel = appGroup?.mainApp?.label ?: packageName
+    val isSpecial = appGroup?.isWebViewZygote == true
     val failToUpdateAppProfile = stringResource(R.string.failed_to_update_app_profile).format(
         appLabel
     )
@@ -169,7 +170,7 @@ fun AppProfileScreen(
         topBar = {
             TopBar(
                 title = appGroup!!.mainApp.label,
-                packageName = packageName,
+                packageName = appGroup.mainApp.displayIdentifier,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = cardColor,
                     scrolledContainerColor = cardColor
@@ -190,6 +191,7 @@ fun AppProfileScreen(
                 .blurSource(),
             topPadding = paddingValues.calculateTopPadding(),
             appGroup = appGroup!!,
+            isSpecial = isSpecial,
             appIcon = {
                 PackageIcon(
                     packageName = appGroup!!.mainApp.packageName,
@@ -235,6 +237,7 @@ private fun AppProfileInner(
     modifier: Modifier = Modifier,
     topPadding: Dp,
     appGroup: InstalledAppGroup,
+    isSpecial: Boolean = false,
     appIcon: @Composable () -> Unit,
     profile: AppProfile,
     defaultUmountModules: Boolean = profile.umountModules,
@@ -247,7 +250,7 @@ private fun AppProfileInner(
 ) {
     val cardConfig: CardConfig = koinInject()
     val themeConfig: ThemeConfig = koinInject()
-    val isRootGranted = profile.allowSu
+    val isRootGranted = !isSpecial && profile.allowSu
     val affectedApplicationsTitle = stringResource(R.string.affected_applications)
 
     LazyColumn(modifier = modifier) {
@@ -255,49 +258,53 @@ private fun AppProfileInner(
             Spacer(modifier = Modifier.height(topPadding))
         }
 
-        item {
-            SettingsDropdownWidget(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                title = appGroup.mainApp.label,
-                description = appGroup.mainApp.packageName,
-                iconPlaceholder = false,
-                leadingContent = {
-                    appIcon()
-                },
-                choice = -1,
-                data = listOf(
-                    stringResource(id = R.string.launch_app),
-                    stringResource(id = R.string.force_stop_app),
-                    stringResource(id = R.string.restart_app)
-                )
-            ) { choice ->
-                when (choice) {
-                    0 -> onControlApp(AppControlAction.LAUNCH)
-                    1 -> onControlApp(AppControlAction.FORCE_STOP)
-                    2 -> onControlApp(AppControlAction.RESTART)
-                    else -> throw IllegalStateException("Illegal choice: $choice")
+        if (!isSpecial) {
+            item {
+                SettingsDropdownWidget(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    title = appGroup.mainApp.label,
+                    description = appGroup.mainApp.displayIdentifier,
+                    iconPlaceholder = false,
+                    leadingContent = {
+                        appIcon()
+                    },
+                    choice = -1,
+                    data = listOf(
+                        stringResource(id = R.string.launch_app),
+                        stringResource(id = R.string.force_stop_app),
+                        stringResource(id = R.string.restart_app)
+                    )
+                ) { choice ->
+                    when (choice) {
+                        0 -> onControlApp(AppControlAction.LAUNCH)
+                        1 -> onControlApp(AppControlAction.FORCE_STOP)
+                        2 -> onControlApp(AppControlAction.RESTART)
+                        else -> throw IllegalStateException("Illegal choice: $choice")
+                    }
                 }
             }
         }
 
-        item {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceBright.copy(
-                    alpha = cardConfig.cardAlpha
-                ),
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            )
-            {
-                SettingsSwitchWidget(
-                    icon = Icons.TwoTone.Security,
-                    title = stringResource(id = R.string.superuser),
-                    checked = isRootGranted,
-                    onCheckedChange = { onProfileChange(profile.copy(allowSu = it)) },
+        if (!isSpecial) {
+            item {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceBright.copy(
+                        alpha = cardConfig.cardAlpha
+                    ),
+                    contentColor = MaterialTheme.colorScheme.onSurface,
                 )
+                {
+                    SettingsSwitchWidget(
+                        icon = Icons.TwoTone.Security,
+                        title = stringResource(id = R.string.superuser),
+                        checked = isRootGranted,
+                        onCheckedChange = { onProfileChange(profile.copy(allowSu = it)) },
+                    )
+                }
             }
         }
 

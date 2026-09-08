@@ -203,7 +203,7 @@ fun HomePage(
             ) {
                 // 状态卡片
                 if (uiState.isCoreDataLoaded) {
-                    if (uiState.systemStatus.requireNewKernel) {
+                    if (uiState.systemStatus.isFullFeatured) {
                         if ((uiState.systemStatus.ksuVersion ?: 0) > BuildConfig.VERSION_CODE) {
                             WarningCard(
                                 message = stringResource(
@@ -764,7 +764,7 @@ private fun InfoCard(
 
 
         item(
-            visible = systemStatus.isValid
+            visible = systemStatus.isFullFeatured
         ) {
             SettingsBaseWidget(
                 iconPlaceholder = false,
@@ -854,7 +854,7 @@ private fun InfoCard(
         }
 
         item(
-            visible = !isSimpleMode && systemStatus.isValid
+            visible = !isSimpleMode && systemStatus.isFullFeatured
         ) {
             SettingsBaseWidget(
                 iconPlaceholder = false,

@@ -54,14 +54,15 @@ fun MainScreen() {
     val homeViewModel = koinViewModel<HomeViewModel>()
     val homeState by homeViewModel.state.collectAsStateWithLifecycle()
 
-    // 获取页面列表，传入 hideKpm 和 kpmVersion
+    // 使用 isFullFeatured 和 isKpmConfigured 来判断页面显示
+    val isKsuValid = homeState.systemStatus.isFullFeatured || homeState.systemStatus.isKpmConfigured
     val pages = remember(
-        homeState.systemStatus.isValid,
+        isKsuValid,
         homeState.hideKpmInfo,
         homeState.systemInfo.kpmVersion
     ) {
         BottomBarDestination.getPages(
-            isKsuValid = homeState.systemStatus.isValid,
+            isKsuValid = isKsuValid,
             hideKpm = homeState.hideKpmInfo,
             kpmVersion = homeState.systemInfo.kpmVersion
         )

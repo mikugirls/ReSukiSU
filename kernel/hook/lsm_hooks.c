@@ -68,6 +68,16 @@ static int ksu_inode_rename(struct inode *old_inode, struct dentry *old_dentry, 
     return 0;
 }
 
+#ifdef KSU_COMPAT_NO_POST_EXECVE_HOOK
+#include <linux/binfmts.h>
+#include "feature/sucompat.h"
+
+static void ksu_handle_bprm_committed_creds(const struct linux_binprm *bprm)
+{
+    ksu_handle_post_execve(NULL, NULL, NULL, NULL, NULL, NULL);
+}
+#endif
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 2, 0) || defined(KSU_COMPAT_HAS_LIST_OF_LSM_HOOKS)
 #include <linux/lsm_hooks.h>
 
@@ -79,6 +89,10 @@ static struct security_hook_list ksu_hooks[] = {
 
 #ifdef CONFIG_KSU_MANUAL_HOOK_AUTO_INITRC_HOOK
     LSM_HOOK_INIT(file_permission, ksu_file_permission),
+#endif
+
+#ifdef KSU_COMPAT_NO_POST_EXECVE_HOOK
+    LSM_HOOK_INIT(bprm_committed_creds, ksu_handle_bprm_committed_creds),
 #endif
 };
 
@@ -112,6 +126,12 @@ void __init ksu_lsm_hook_built_in_init(void)
 #define IF_CONFIG_KSU_MANUAL_HOOK_AUTO_INITRC_HOOK(x)
 #endif
 
+#ifdef KSU_COMPAT_NO_POST_EXECVE_HOOK
+#define IF_KSU_COMPAT_NO_POST_EXECVE_HOOK(x) x
+#else
+#define IF_KSU_COMPAT_NO_POST_EXECVE_HOOK(x)
+#endif
+
 #define LSM_HOOK_LIST(HOOK_ITEM)                                                                                       \
     HOOK_ITEM(inode_rename, ksu_inode_rename,                                                                          \
               (struct inode * old_inode, struct dentry * old_dentry, struct inode * new_inode,                         \
@@ -121,7 +141,9 @@ void __init ksu_lsm_hook_built_in_init(void)
                                                          (struct cred * new, const struct cred *old, int flags),       \
                                                          (new, old, flags)))                                           \
     IF_CONFIG_KSU_MANUAL_HOOK_AUTO_INITRC_HOOK(                                                                        \
-        HOOK_ITEM(file_permission, ksu_file_permission, (struct file * file, int mask), (file, mask)))
+        HOOK_ITEM(file_permission, ksu_file_permission, (struct file * file, int mask), (file, mask)))                 \
+    IF_KSU_COMPAT_NO_POST_EXECVE_HOOK(                                                                                 \
+        HOOK_ITEM(bprm_committed_creds, ksu_handle_bprm_committed_creds, (struct linux_binprm * bprm), (bprm)))
 
 #define STRIP_PARENS(...) __VA_ARGS__
 

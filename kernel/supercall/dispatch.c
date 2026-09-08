@@ -69,6 +69,9 @@ static int do_get_info(void __user *arg)
 
 #ifdef MODULE
     cmd.flags |= KSU_GET_INFO_FLAG_LKM;
+    if (ksu_bundled) {
+        cmd.flags |= KSU_GET_INFO_FLAG_BUNDLED;
+    }
 #endif
 #ifdef EXPECTED_PR_BUILD_SIZE
     cmd.flags |= KSU_GET_INFO_FLAG_PR_BUILD;
@@ -104,6 +107,9 @@ static int do_get_info_legacy(void __user *arg)
 
 #ifdef MODULE
     cmd.flags |= KSU_GET_INFO_FLAG_LKM;
+    if (ksu_bundled) {
+        cmd.flags |= KSU_GET_INFO_FLAG_BUNDLED;
+    }
 #endif
 
     if (is_manager()) {
@@ -1326,7 +1332,8 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .cmd = KSU_IOCTL_GET_WRAPPER_FD,
         .name = "GET_WRAPPER_FD",
         .handler = do_get_wrapper_fd,
-        .perm_check = manager_or_root 
+        .perm_check = manager_or_root,
+        .allow_su_session = true
     },
     { 
         .cmd = KSU_IOCTL_MANAGE_MARK, 
@@ -1362,7 +1369,8 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .cmd = KSU_IOCTL_DISABLE_ESCAPE_TO_ROOT,
         .name = "DISABLE_ESCAPE_TO_ROOT",
         .handler = do_disable_escape_to_root,
-        .perm_check = only_root
+        .perm_check = only_root,
+        .allow_su_session = true
     },
     {
         .cmd = KSU_IOCTL_DISABLE_KSU,
@@ -1424,7 +1432,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 };
 // clang-format on
 
-long ksu_supercall_handle_ioctl(unsigned int cmd, void __user *argp)
+long ksu_supercall_handle_ioctl(const struct file *filp, unsigned int cmd, void __user *argp)
 {
     int i;
 
@@ -1440,7 +1448,8 @@ long ksu_supercall_handle_ioctl(unsigned int cmd, void __user *argp)
     for (i = 0; ksu_ioctl_handlers[i].handler; i++) {
         if (cmd == ksu_ioctl_handlers[i].cmd) {
             // Check permission first
-            if (ksu_ioctl_handlers[i].perm_check && !ksu_ioctl_handlers[i].perm_check()) {
+            if (ksu_ioctl_handlers[i].perm_check && !ksu_ioctl_handlers[i].perm_check() &&
+                !(ksu_ioctl_handlers[i].allow_su_session && ksu_is_su_session_fd(filp))) {
                 pr_warn("ksu ioctl: permission denied for cmd=0x%x uid=%d\n", cmd, ksu_get_uid_t(current_uid()));
                 return -EPERM;
             }
