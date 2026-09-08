@@ -203,39 +203,44 @@ fun HomePage(
             ) {
                 // 状态卡片
                 if (uiState.isCoreDataLoaded) {
+                    // MODIFIED: 版本比较逻辑，处理大于、小于、等于三种情况
                     if (uiState.systemStatus.isFullFeatured) {
-                        if ((uiState.systemStatus.ksuVersion ?: 0) > BuildConfig.VERSION_CODE) {
-                            WarningCard(
-                                message = stringResource(
-                                    id = R.string.require_manager_version,
-                                    BuildConfig.VERSION_CODE,
-                                    uiState.systemStatus.ksuVersion ?: 0
-                                ),
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.TwoTone.Error,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onErrorContainer,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            )
-                        } else {
-                            WarningCard(
-                                message = stringResource(
-                                    id = R.string.require_kernel_version,
-                                    uiState.systemStatus.ksuVersion ?: 0,
-                                    BuildConfig.VERSION_CODE
-                                ),
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.TwoTone.Error,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onErrorContainer,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            )
+                        val ksuVer = uiState.systemStatus.ksuVersion ?: 0
+                        when {
+                            ksuVer > BuildConfig.VERSION_CODE -> {
+                                WarningCard(
+                                    message = stringResource(
+                                        id = R.string.require_manager_version,
+                                        BuildConfig.VERSION_CODE,
+                                        ksuVer
+                                    ),
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.TwoTone.Error,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                )
+                            }
+                            ksuVer < BuildConfig.VERSION_CODE -> {
+                                WarningCard(
+                                    message = stringResource(
+                                        id = R.string.require_kernel_version,
+                                        ksuVer,
+                                        BuildConfig.VERSION_CODE
+                                    ),
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.TwoTone.Error,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                     }
